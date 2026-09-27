@@ -6,6 +6,7 @@ import Ventas from './pages/Ventas'
 import Clientes from './pages/Clientes'
 import Inventario from './pages/Inventario'
 import { Routes, Route } from 'react-router-dom'
+import Login from './pages/Login'
 
 function App() {
   return (
@@ -24,11 +25,12 @@ function App() {
 
       <main>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/ventas" element={<Ventas />} />
           <Route path="/clientes" element={<Clientes />} />
-          <Route path="/inventario" element={<Inventario />} />
+          <Route path="/inventario" element={<Inventario />} />          
         </Routes>
       </main>
     </>

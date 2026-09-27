@@ -1,5 +1,14 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import {
+  obtenerProductos,
+  obtenerProductosInactivos,
+  crearProducto,
+  actualizarProducto,
+  desactivarProducto as desactivarProductoAPI,
+  activarProducto as activarProductoAPI,
+} from "../services/productoService"
 import "./Productos.css"
+
 
 function Productos() {
   const [productos, setProductos] = useState([
@@ -32,6 +41,8 @@ function Productos() {
     },
   ])
 
+  const [productosInactivos, setProductosInactivos] = useState([])
+
   const [busqueda, setBusqueda] = useState("")
   const [filtroEstado, setFiltroEstado] = useState("todos")
   const [mostrarModal, setMostrarModal] = useState(false)
@@ -44,6 +55,40 @@ function Productos() {
     stock: "",
     stockMinimo: "",
   })
+
+useEffect(() => {
+
+  console.log("🔥 PRODUCTOS.JSX SE EJECUTÓ");
+
+  obtenerProductos()
+    .then((datos) => {
+
+      console.log("PRODUCTOS DEL BACKEND:", datos);
+
+      setProductos(datos);
+
+    })
+    .catch((error) => {
+
+      console.error("Error al cargar productos:", error);
+
+    });
+
+  obtenerProductosInactivos()
+    .then((datos) => {
+
+      console.log("PRODUCTOS INACTIVOS DEL BACKEND:", datos);
+
+      setProductosInactivos(datos);
+
+    })
+    .catch((error) => {
+
+      console.error("Error al cargar productos inactivos:", error);
+
+    });
+
+}, []);
 
   const obtenerEstadoStock = (producto) => {
     if (!producto.activo) {
@@ -61,7 +106,12 @@ function Productos() {
     return "Disponible"
   }
 
-  const productosFiltrados = productos.filter((producto) => {
+  const listaFiltrada =
+    filtroEstado === "inactivos"
+      ? productosInactivos
+      : productos
+
+  const productosFiltrados = listaFiltrada.filter((producto) => {
     const coincideBusqueda =
       producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       producto.codigo.toLowerCase().includes(busqueda.toLowerCase())
@@ -117,21 +167,30 @@ function Productos() {
     })
   }
 
-  const guardarProducto = (e) => {
+  const guardarProducto = async (e) => {
     e.preventDefault()
 
+    const todosLosProductos = [
+      ...productos,
+      ...productosInactivos,
+    ]
 
-    const codigoExiste = productos.some(
+    const codigoExiste = todosLosProductos.some(
       (producto) =>
         producto.codigo.toLowerCase() === formulario.codigo.trim().toLowerCase() &&
         producto.id !== productoEditando?.id
     )
 
-    const nombreExiste = productos.some(
+    const nombreExiste = todosLosProductos.some(
       (producto) =>
         producto.nombre.toLowerCase() === formulario.nombre.trim().toLowerCase() &&
         producto.id !== productoEditando?.id
     )
+
+    if (!formulario.codigo.trim()) {
+      alert("El código del producto es obligatorio.")
+      return
+    }
 
     if (!formulario.nombre.trim()) {
       alert("El nombre del producto es obligatorio.")
@@ -153,7 +212,7 @@ function Productos() {
       return
     }
 
-    if (formulario.stock.trim() === "") {
+    if (String(formulario.stock).trim() === "") {
       alert("El stock inicial es obligatorio.")
       return
     }
@@ -163,7 +222,7 @@ function Productos() {
       return
     }
 
-    if (formulario.stockMinimo.trim() === "") {
+    if (String(formulario.stockMinimo).trim() === "") {
       alert("El stock mínimo es obligatorio.")
       return
     }
@@ -177,61 +236,153 @@ function Productos() {
       alert("El stock mínimo no puede ser mayor que el stock inicial.")
       return
     }
-
-    if (productoEditando) {
-      const productosActualizados = productos.map((producto) =>
-        producto.id === productoEditando.id
-          ? {
-            ...producto,
-            codigo: formulario.codigo,
-            nombre: formulario.nombre,
-            precioVenta: Number(formulario.precioVenta),
-            stock: Number(formulario.stock),
-            stockMinimo: Number(formulario.stockMinimo),
-          }
-          : producto
-      )
-
-      setProductos(productosActualizados)
-    } else {
-      const nuevoProducto = {
-        id: Date.now(),
-        codigo: formulario.codigo,
-        nombre: formulario.nombre,
-        precioVenta: Number(formulario.precioVenta),
-        stock: Number(formulario.stock),
-        stockMinimo: Number(formulario.stockMinimo),
-        activo: true,
-      }
-
-      setProductos([...productos, nuevoProducto])
+  
+  if (productoEditando) {
+  try {
+    const productoActualizado = {
+      codigo: formulario.codigo.trim(),
+      nombre: formulario.nombre.trim(),
+      precioVenta: Number(formulario.precioVenta),
+      stock: Number(formulario.stock),
+      stockMinimo: Number(formulario.stockMinimo),
     }
+
+    const productoGuardado = await actualizarProducto(
+      productoEditando.id,
+      productoActualizado
+    )
+
+    if (productoEditando.activo) {
+      setProductos(
+        productos.map((producto) =>
+          producto.id === productoEditando.id
+            ? productoGuardado
+            : producto
+        )
+      )
+    } else {
+      setProductosInactivos(
+        productosInactivos.map((producto) =>
+          producto.id === productoEditando.id
+            ? productoGuardado
+            : producto
+        )
+      )
+    }
+
+    alert("Producto actualizado correctamente")
+
+  } catch (error) {
+    console.error("Error al actualizar producto:", error)
+    alert("No se pudo actualizar el producto")
+    return
+  }
+
+} else {
+  try {
+    const nuevoProducto = {
+      codigo: formulario.codigo.trim(),
+      nombre: formulario.nombre.trim(),
+      precioVenta: Number(formulario.precioVenta),
+      stock: Number(formulario.stock),
+      stockMinimo: Number(formulario.stockMinimo),
+    }
+
+    const productoCreado = await crearProducto(nuevoProducto)
+
+    setProductos([
+      ...productos,
+      productoCreado,
+    ])
+
+    alert("Producto creado correctamente")
+
+  } catch (error) {
+    console.error("Error al crear producto:", error)
+    alert("No se pudo crear el producto")
+  }
+}
 
     setMostrarModal(false)
     setProductoEditando(null)
   }
 
 
-  const desactivarProducto = (id) => {
-    const productosActualizados = productos.map((producto) =>
-      producto.id === id
-        ? { ...producto, activo: false }
-        : producto
-    )
+ const desactivarProducto = async (id) => {
+  const producto = productos.find(
+    (producto) => producto.id === id
+  )
 
-    setProductos(productosActualizados)
+  if (!producto) {
+    return
   }
 
+  try {
+    await desactivarProductoAPI(id)
 
-  const activarProducto = (id) => {
-    const productosActualizados = productos.map((producto) =>
-      producto.id === id
-        ? { ...producto, activo: true }
-        : producto
+    const productoInactivo = {
+      ...producto,
+      activo: false,
+    }
+
+    setProductos(
+      productos.filter(
+        (producto) => producto.id !== id
+      )
     )
 
-    setProductos(productosActualizados)
+    setProductosInactivos([
+      ...productosInactivos,
+      productoInactivo,
+    ])
+
+    console.log("PRODUCTOS INACTIVOS:", [
+  ...productosInactivos,
+  productoInactivo,
+])
+
+    alert("Producto desactivado correctamente")
+
+  } catch (error) {
+    console.error("Error al desactivar producto:", error)
+    alert("No se pudo desactivar el producto")
   }
+}
+  const activarProducto = async (id) => {
+  const producto = productosInactivos.find(
+    (producto) => producto.id === id
+  )
+
+  if (!producto) {
+    return
+  }
+
+  try {
+    await activarProductoAPI(id)
+
+    const productoActivo = {
+      ...producto,
+      activo: true,
+    }
+
+    setProductos([
+      ...productos,
+      productoActivo,
+    ])
+
+    setProductosInactivos(
+      productosInactivos.filter(
+        (producto) => producto.id !== id
+      )
+    )
+
+    alert("Producto activado correctamente")
+
+  } catch (error) {
+    console.error("Error al activar producto:", error)
+    alert("No se pudo activar el producto")
+  }
+}
 
 
 
@@ -504,6 +655,7 @@ function Productos() {
 
     </div>
   )
+
 }
 
 export default Productos
