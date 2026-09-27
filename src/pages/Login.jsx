@@ -1,62 +1,102 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { iniciarSesion } from "../services/authService";
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { iniciarSesion } from "../services/authService"
+import "./Login.css"
 
 function Login() {
+  const navigate = useNavigate()
 
-  const navigate = useNavigate();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [cargando, setCargando] = useState(false)
+
   const manejarLogin = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+
+    setError("")
+
+    if (!username || !password) {
+      setError("Ingresa tu usuario y contraseña")
+      return
+    }
 
     try {
-      const datos = await iniciarSesion(username, password);
+      setCargando(true)
 
-      localStorage.setItem("token", datos.token);
+      const datos = await iniciarSesion(username, password)
 
-      console.log("RESPUESTA DEL LOGIN:", datos);
+      localStorage.setItem("token", datos.token)
 
-      navigate("/dashboard");
-
+      navigate("/dashboard")
     } catch (error) {
-      console.error("ERROR EN LOGIN:", error);
+      setError("Usuario o contraseña incorrectos")
+    } finally {
+      setCargando(false)
     }
-  };
+  }
 
   return (
-    <div>
-      <h1>Iniciar sesión</h1>
+    <div className="login-page">
+      <div className="login-card">
 
-      <form onSubmit={manejarLogin}>
+        <h1 className="login-title">
+          SmartPyme
+        </h1>
 
-        <div>
-          <label>Usuario</label>
+        <p className="login-subtitle">
+          Inicia sesión para continuar
+        </p>
 
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
+        <form className="login-form" onSubmit={manejarLogin}>
 
-        <div>
-          <label>Contraseña</label>
+          <div className="login-field">
+            <label htmlFor="username">
+              Usuario
+            </label>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={cargando}
+            />
+          </div>
 
-        <button type="submit">
-          Iniciar sesión
-        </button>
+          <div className="login-field">
+            <label htmlFor="password">
+              Contraseña
+            </label>
 
-      </form>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={cargando}
+            />
+          </div>
+
+          {error && (
+            <div className="login-error">
+              {error}
+            </div>
+          )}
+
+          <button
+            className="login-button"
+            type="submit"
+            disabled={cargando}
+          >
+            {cargando ? "Iniciando sesión..." : "Iniciar sesión"}
+          </button>
+
+        </form>
+
+      </div>
     </div>
-  );
+  )
 }
 
-export default Login;
+export default Login
