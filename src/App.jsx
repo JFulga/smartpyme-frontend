@@ -1,39 +1,34 @@
-import Navbar from './components/Navbar'
-import Sidebar from './components/Sidebar'
-import Dashboard from './pages/Dashboard'
-import Productos from './pages/Productos'
-import Ventas from './pages/Ventas'
-import Clientes from './pages/Clientes'
-import Inventario from './pages/Inventario'
-import { Routes, Route } from 'react-router-dom'
-import Login from './pages/Login'
+import { Routes, Route } from "react-router-dom"
+
+import Layout from "./components/Layout"
+import Login from "./pages/Login"
+import Dashboard from "./pages/Dashboard"
+import Productos from "./pages/Productos"
+import Ventas from "./pages/Ventas"
+import Clientes from "./pages/Clientes"
+import Inventario from "./pages/Inventario"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
   return (
-    <>
-      <Navbar nombre="SmartPyme" />
+    <Routes>
 
-      <Sidebar
-        items={[
-          'Dashboard',
-          'Productos',
-          'Ventas',
-          'Clientes',
-          'Inventario'
-        ]}
-      />
+      <Route path="/login" element={<Login />} />
 
-      <main>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/productos" element={<Productos />} />
-          <Route path="/ventas" element={<Ventas />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/inventario" element={<Inventario />} />          
-        </Routes>
-      </main>
-    </>
+
+     <Route element={<ProtectedRoute />}>
+       <Route element={<Layout />}>
+      
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/productos" element={<Productos />} />
+        <Route path="/ventas" element={<Ventas />} />
+        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/inventario" element={<Inventario />} />
+
+      </Route>
+      </Route>
+
+    </Routes>
   )
 }
 
