@@ -1,3 +1,4 @@
+import "./Ventas.css"
 import { useEffect, useState } from "react"
 import { obtenerClientes } from "../services/clienteService"
 import { crearVenta } from "../services/ventaService"
@@ -57,173 +58,224 @@ function Ventas() {
   }
 
   return (
-    <div>
+  <div className="ventas-container">
 
-      <h1>Registrar Venta</h1>
-
-      <p>Gestión de ventas de SmartPyme</p>
-
+    <div className="ventas-header">
       <div>
-        <label>Cliente</label>
-
-        <select
-          value={clienteId}
-          onChange={(e) => setClienteId(e.target.value)}
-        >
-          <option value="">Seleccionar cliente</option>
-
-          {clientes.map((cliente) => (
-            <option
-              key={cliente.id}
-              value={cliente.id}
-            >
-              {cliente.nombre} {cliente.apellido}
-            </option>
-          ))}
-        </select>
+        <h1>Registrar venta</h1>
+        <p>Gestiona tus ventas de forma rápida y sencilla.</p>
       </div>
+    </div>
 
-      <div>
-        <label>Producto</label>
+    <div className="ventas-grid">
 
-        <select
-          value={productoId}
-          onChange={(e) => setProductoId(e.target.value)}
-        >
-          <option value="">Seleccionar producto</option>
+      <section className="venta-card">
 
-          {productos.map((producto) => (
-            <option
-              key={producto.id}
-              value={producto.id}
-            >
-              {producto.nombre} - ${producto.precioVenta}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div className="card-header">
+          <h2>Nueva venta</h2>
+          <span>1</span>
+        </div>
 
-      <div>
-        <label>Cantidad</label>
+        <div className="form-group">
+          <label>Cliente</label>
 
-        <input
-          type="number"
-          min="1"
-          value={cantidad}
-          onChange={(e) => setCantidad(e.target.value)}
-        />
-        <button
-          onClick={() => {
-            const productoSeleccionado = productos.find(
-              (producto) => producto.id === Number(productoId)
-            )
+          <select
+            value={clienteId}
+            onChange={(e) => setClienteId(e.target.value)}
+          >
+            <option value="">Seleccionar cliente</option>
 
-            const cantidadNumero = Number(cantidad)
+            {clientes.map((cliente) => (
+              <option key={cliente.id} value={cliente.id}>
+                {cliente.nombre} {cliente.apellido}
+              </option>
+            ))}
+          </select>
+        </div>
 
-            if (!productoSeleccionado) {
-              alert("Selecciona un producto")
-              return
-            }
+        <div className="form-group">
+          <label>Producto</label>
 
-            if (cantidadNumero <= 0) {
-              alert("Ingresa una cantidad válida")
-              return
-            }
+          <select
+            value={productoId}
+            onChange={(e) => setProductoId(e.target.value)}
+          >
+            <option value="">Seleccionar producto</option>
 
-            setCarrito((carritoActual) => {
-              const productoExistente = carritoActual.find(
-                (item) => item.productoId === productoSeleccionado.id
-              )
+            {productos.map((producto) => (
+              <option key={producto.id} value={producto.id}>
+                {producto.nombre} - ${producto.precioVenta}
+              </option>
+            ))}
+          </select>
+        </div>
 
-              if (productoExistente) {
-                return carritoActual.map((item) =>
-                  item.productoId === productoSeleccionado.id
-                    ? {
-                      ...item,
-                      cantidad: item.cantidad + cantidadNumero
-                    }
-                    : item
+        <div className="form-group">
+          <label>Cantidad</label>
+
+          <div className="cantidad-row">
+            <input
+              type="number"
+              min="1"
+              value={cantidad}
+              onChange={(e) => setCantidad(e.target.value)}
+              placeholder="Ej. 2"
+            />
+
+            <button
+              className="btn-agregar"
+              onClick={() => {
+                const productoSeleccionado = productos.find(
+                  (producto) => producto.id === Number(productoId)
                 )
-              }
 
-              return [
-                ...carritoActual,
-                {
-                  productoId: productoSeleccionado.id,
-                  productoNombre: productoSeleccionado.nombre,
-                  cantidad: cantidadNumero,
-                  precio: productoSeleccionado.precioVenta
+                const cantidadNumero = Number(cantidad)
+
+                if (!productoSeleccionado) {
+                  alert("Selecciona un producto")
+                  return
                 }
-              ]
-            })
 
-            setProductoId("")
-            setCantidad("")
-          }}
-        >
-          Agregar
-        </button>
-        <h2>Carrito</h2>
+                if (cantidadNumero <= 0) {
+                  alert("Ingresa una cantidad válida")
+                  return
+                }
+
+                setCarrito((carritoActual) => {
+                  const productoExistente = carritoActual.find(
+                    (item) => item.productoId === productoSeleccionado.id
+                  )
+
+                  if (productoExistente) {
+                    return carritoActual.map((item) =>
+                      item.productoId === productoSeleccionado.id
+                        ? {
+                            ...item,
+                            cantidad: item.cantidad + cantidadNumero
+                          }
+                        : item
+                    )
+                  }
+
+                  return [
+                    ...carritoActual,
+                    {
+                      productoId: productoSeleccionado.id,
+                      productoNombre: productoSeleccionado.nombre,
+                      cantidad: cantidadNumero,
+                      precio: productoSeleccionado.precioVenta
+                    }
+                  ]
+                })
+
+                setProductoId("")
+                setCantidad("")
+              }}
+            >
+              Agregar producto
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <section className="carrito-card">
+
+        <div className="card-header">
+          <div>
+            <h2>Carrito</h2>
+            <p>{carrito.length} producto(s)</p>
+          </div>
+        </div>
 
         {carrito.length === 0 ? (
-          <p>No hay productos agregados.</p>
+          <div className="carrito-vacio">
+            <div className="carrito-icon">🛒</div>
+            <h3>Tu carrito está vacío</h3>
+            <p>Agrega productos para comenzar la venta.</p>
+          </div>
         ) : (
-          <ul>
+          <div className="carrito-lista">
+
             {carrito.map((item) => (
-              <li key={item.productoId}>
-                {item.productoNombre} -
-                Precio unitario: ${item.precio} -
-                Cantidad: {item.cantidad} -
-                Subtotal: ${item.precio * item.cantidad}
+              <div className="producto-carrito" key={item.productoId}>
 
-                <button
-                  onClick={() => {
-                    const nuevaCantidad = Number(
-                      prompt("Nueva cantidad:", item.cantidad)
-                    )
+                <div className="producto-info">
+                  <h3>{item.productoNombre}</h3>
+                  <p>
+                    ${item.precio.toLocaleString()} × {item.cantidad}
+                  </p>
+                </div>
 
-                    if (nuevaCantidad > 0) {
+                <div className="producto-subtotal">
+                  ${(item.precio * item.cantidad).toLocaleString()}
+                </div>
+
+                <div className="producto-acciones">
+
+                  <button
+                    className="btn-editar"
+                    onClick={() => {
+                      const nuevaCantidad = Number(
+                        prompt("Nueva cantidad:", item.cantidad)
+                      )
+
+                      if (nuevaCantidad > 0) {
+                        setCarrito((carritoActual) =>
+                          carritoActual.map((producto) =>
+                            producto.productoId === item.productoId
+                              ? {
+                                  ...producto,
+                                  cantidad: nuevaCantidad
+                                }
+                              : producto
+                          )
+                        )
+                      }
+                    }}
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    className="btn-eliminar"
+                    onClick={() => {
                       setCarrito((carritoActual) =>
-                        carritoActual.map((producto) =>
-                          producto.productoId === item.productoId
-                            ? {
-                              ...producto,
-                              cantidad: nuevaCantidad
-                            }
-                            : producto
+                        carritoActual.filter(
+                          (producto) =>
+                            producto.productoId !== item.productoId
                         )
                       )
-                    }
-                  }}
-                >
-                  Editar
-                </button>
+                    }}
+                  >
+                    Eliminar
+                  </button>
 
-                <button
-                  onClick={() => {
-                    setCarrito((carritoActual) =>
-                      carritoActual.filter(
-                        (producto) =>
-                          producto.productoId !== item.productoId
-                      )
-                    )
-                  }}
-                >
-                  Eliminar
-                </button>
-              </li>
+                </div>
+
+              </div>
             ))}
-          </ul>
 
+          </div>
         )}
-        <h3>
-          Total: $
-          {carrito.reduce(
-            (total, item) => total + item.precio * item.cantidad,
-            0
-          )}
-        </h3>
+
+        <div className="venta-total">
+          <span>Total</span>
+
+          <strong>
+            $
+            {carrito
+              .reduce(
+                (total, item) =>
+                  total + item.precio * item.cantidad,
+                0
+              )
+              .toLocaleString()}
+          </strong>
+        </div>
+
         <button
+          className="btn-registrar"
           onClick={async () => {
             if (!validarVenta()) {
               return
@@ -240,7 +292,9 @@ function Ventas() {
 
               const resultado = await crearVenta(venta)
 
-              alert(`Venta registrada correctamente. Factura #${resultado.id}`)
+              alert(
+                `Venta registrada correctamente. Factura #${resultado.id}`
+              )
 
               setClienteId("")
               setProductoId("")
@@ -254,10 +308,13 @@ function Ventas() {
         >
           Registrar venta
         </button>
-      </div>
+
+      </section>
 
     </div>
-  )
+
+  </div>
+)
 }
 
 export default Ventas
